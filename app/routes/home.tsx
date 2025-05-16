@@ -1,17 +1,33 @@
-import type { Route } from "./+types/home";
-import { Welcome } from "../welcome/welcome";
-
-export function meta() {
-  return [
-    { title: "New React Router App" },
-    { name: "description", content: "Welcome to React Router!" },
-  ];
+import { useReducer, useEffect } from "react";
+//@ts-ignore
+function itemsReducer(state, action) {
+  switch (action.type) {
+    case "GET_ITEMS":
+      return { items: action.payload };
+    default:
+      return state;
+  }
 }
 
-export function loader({ context }: Route.LoaderArgs) {
-  return { message: context.cloudflare.env.VALUE_FROM_CLOUDFLARE };
-}
+const initialState = {
+  items: [],
+};
 
-export default function Home({ loaderData }: Route.ComponentProps) {
-  return <Welcome message={loaderData.message} />;
+export default function () {
+  const [state, dispatch] = useReducer(itemsReducer, initialState);
+
+  useEffect(() => {
+    async function run() {
+      const allLolItems = await fetch(
+        "https://ddragon.leagueoflegends.com/cdn/14.19.1/data/en_US/item.json",
+      ).then((response) => {
+        return response.json();
+      });
+      console.log("allLolItems", allLolItems);
+      dispatch({ type: "GET_ITEMS", payload: allLolItems });
+    }
+    run();
+  }, []);
+
+  return <h1>{state.data}</h1>;
 }
