@@ -29,5 +29,6 @@ export default function () {
     run();
   }, []);
 
-  return <h1>{state.data}</h1>;
+  console.log("state", state);
+  return <h1>{[state.items.data]}</h1>;
 }
