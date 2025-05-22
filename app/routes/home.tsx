@@ -80,9 +80,9 @@ const GoldSchema = V.object({
   total: V.number(),
 });
 
-const ItemSchema = V.record(
-  V.pipe(V.string(), V.minLength(4)),
+const ItemSchema = V.array(
   V.object({
+    id: V.string(),
     colloq: V.optional(V.string()),
     description: V.optional(V.string()),
     gold: V.optional(GoldSchema),
@@ -96,7 +96,6 @@ const ItemSchema = V.record(
   }),
 );
 
-//@ts-ignore
 function itemsReducer(state, action) {
   switch (action.type) {
     case "GET_ITEMS": {
@@ -137,7 +136,15 @@ export default function () {
       // console.log("allPosibleTags:", allPosibleTags);
 
       //@ts-ignore
-      const dataLolitems = V.parse(ItemSchema, allLolItems.data);
+      const dataLolitems = V.parse(
+        ItemSchema,
+        //@ts-ignore
+        Object.entries(allLolItems.data).map(([id, item]) => {
+          const lolItems = { id: id, ...item };
+          console.log("lolItems", lolItems);
+          return lolItems;
+        }),
+      );
       dispatch({ type: "GET_ITEMS", payload: dataLolitems });
     }
     run();
