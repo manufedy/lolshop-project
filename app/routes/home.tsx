@@ -1,9 +1,55 @@
 import { useReducer, useEffect } from "react";
 import * as V from "valibot";
 
+const tagsSchemas = V.union([
+  V.object({}),
+  V.literal("Boots"),
+  V.literal("ManaRegen"),
+  V.literal("HealthRegen"),
+  V.literal("Health"),
+  V.literal("CriticalStrike"),
+  V.literal("SpellDamage"),
+  V.literal("Mana"),
+  V.literal("Armor"),
+  V.literal("SpellBlock"),
+  V.literal("LifeSteal"),
+  V.literal("SpellVamp"),
+  V.literal("Jungle"),
+  V.literal("Damage"),
+  V.literal("Lane"),
+  V.literal("AttackSpeed"),
+  V.literal("OnHit"),
+  V.literal("Trinket"),
+  V.literal("Active"),
+  V.literal("Consumable"),
+  V.literal("CooldownReduction"),
+  V.literal("ArmorPenetration"),
+  V.literal("AbilityHaste"),
+  V.literal("Stealth"),
+  V.literal("Vision"),
+  V.literal("NonbootsMovement"),
+  V.literal("Tenacity"),
+  V.literal("MagicPenetration"),
+  V.literal("Aura"),
+  V.literal("Slow"),
+  V.literal("MagicResist"),
+  V.literal("GoldPer"),
+]);
+
 const StatSchema = V.union([
   V.object({}),
-  V.record(V.pipe(V.string(), V.minLength(4)), V.number()),
+  V.literal("FlatMovementSpeedMod"),
+  V.literal("FlatHPPoolMod"),
+  V.literal("FlatCritChanceMod"),
+  V.literal("FlatMagicDamageMod"),
+  V.literal("FlatMPPoolMod"),
+  V.literal("FlatArmorMod"),
+  V.literal("FlatSpellBlockMod"),
+  V.literal("FlatPhysicalDamageMod"),
+  V.literal("PercentAttackSpeedMod"),
+  V.literal("PercentLifeStealMod"),
+  V.literal("FlatHPRegenMod"),
+  V.literal("PercentMovementSpeedMod"),
 ]);
 
 const MapsSchema = V.object({
@@ -15,7 +61,7 @@ const MapsSchema = V.object({
   33: V.boolean(),
 });
 
-const IntoSchema = V.array(V.pipe(V.string(), V.minLength(5)));
+const IntoSchema = V.array(V.string());
 
 const ImageSchema = V.object({
   full: V.pipe(V.string(), V.minLength(8)),
@@ -34,20 +80,21 @@ const GoldSchema = V.object({
   total: V.number(),
 });
 
-const ItemSchema = V.object({
-  colloq: V.string(),
-  description: V.string(),
-  gold: GoldSchema,
-  image: ImageSchema,
-  into: IntoSchema,
-  maps: MapsSchema,
-  name: V.pipe(V.string(), V.minLength(3)),
-  plantext: V.pipe(V.string(), V.minLength(4)),
-  stat: StatSchema,
-  tags: V.array(V.pipe(V.string(), V.minLength(4))),
-});
-
-type Item = V.InferOutput<typeof ItemSchema>;
+const ItemSchema = V.record(
+  V.pipe(V.string(), V.minLength(4)),
+  V.object({
+    colloq: V.optional(V.string()),
+    description: V.optional(V.string()),
+    gold: V.optional(GoldSchema),
+    image: V.optional(ImageSchema),
+    into: V.optional(IntoSchema),
+    maps: V.optional(MapsSchema),
+    name: V.pipe(V.string(), V.minLength(3)),
+    plaintext: V.optional(V.string()),
+    stat: V.optional(StatSchema),
+    tags: V.optional(tagsSchemas),
+  }),
+);
 
 //@ts-ignore
 function itemsReducer(state, action) {
@@ -74,18 +121,32 @@ export default function () {
       ).then((response) => {
         return response.json();
       });
+      // const allPosibleStats = new Set();
+      // Object.entries(allLolItems.data).map(([id, item]) => {
+      //   Object.keys(item.stats).map((key) => {
+      //     allPosibleStats.add(key);
+      //   });
+      // });
+      // console.log("allPosibleStats:", allPosibleStats);
+      // const allPosibleTags = new Set();
+      // Object.entries(allLolItems.data).map(([id, item]) => {
+      //   Object.values(item.tags).map((values) => {
+      //     allPosibleTags.add(values);
+      //   });
+      // });
+      // console.log("allPosibleTags:", allPosibleTags);
+
+      //@ts-ignore
       const dataLolitems = V.parse(ItemSchema, allLolItems.data);
       dispatch({ type: "GET_ITEMS", payload: dataLolitems });
     }
     run();
   }, []);
 
-  console.log("state", state);
-
   return (
     <div className="items-grid">
-      {state.items.data ? (
-        Object.entries(state.items.data).map(([id, item]) => {
+      {state.items ? (
+        Object.entries(state.items).map(([id, item]) => {
           return (
             <div key={id} className="item-card">
               <img
