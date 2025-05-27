@@ -85,8 +85,8 @@ const ItemSchema = V.array(
     id: V.string(),
     colloq: V.optional(V.string()),
     description: V.optional(V.string()),
-    gold: V.optional(GoldSchema),
-    image: V.optional(ImageSchema),
+    gold: GoldSchema,
+    image: ImageSchema,
     into: V.optional(IntoSchema),
     maps: V.optional(MapsSchema),
     name: V.pipe(V.string(), V.minLength(3)),
@@ -96,7 +96,18 @@ const ItemSchema = V.array(
   }),
 );
 
-function itemsReducer(state, action) {
+type ItemType = V.InferOutput<typeof ItemSchema>;
+
+type State = {
+  items: ItemType;
+};
+
+type Action = {
+  type: "GET_ITEMS";
+  payload: ItemType;
+};
+
+function itemsReducer(state: State, action: Action) {
   switch (action.type) {
     case "GET_ITEMS": {
       return { items: action.payload };
@@ -140,6 +151,7 @@ export default function () {
         ItemSchema,
         //@ts-ignore
         Object.entries(allLolItems.data).map(([id, item]) => {
+          //@ts-ignore
           const lolItems = { id: id, ...item };
           console.log("lolItems", lolItems);
           return lolItems;
@@ -150,12 +162,14 @@ export default function () {
     run();
   }, []);
 
+  console.log("state:", state);
+
   return (
     <div className="items-grid">
       {state.items ? (
-        Object.entries(state.items).map(([id, item]) => {
+        state.items.map((item) => {
           return (
-            <div key={id} className="item-card">
+            <div key={item.id} className="item-card">
               <img
                 src={`https://ddragon.leagueoflegends.com/cdn/14.19.1/img/item/${item.image.full}`}
                 alt={item.name}
