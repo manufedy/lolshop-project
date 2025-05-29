@@ -1,7 +1,6 @@
 import * as V from "valibot";
 
 export const tagsSchemas = V.union([
-  V.object({}),
   V.literal("Boots"),
   V.literal("ManaRegen"),
   V.literal("HealthRegen"),
@@ -36,7 +35,6 @@ export const tagsSchemas = V.union([
 ]);
 
 export const StatSchema = V.union([
-  V.object({}),
   V.literal("FlatMovementSpeedMod"),
   V.literal("FlatHPPoolMod"),
   V.literal("FlatCritChanceMod"),
@@ -60,8 +58,6 @@ export const MapsSchema = V.object({
   33: V.boolean(),
 });
 
-export const IntoSchema = V.array(V.string());
-
 const ImageSchema = V.object({
   full: V.pipe(V.string(), V.minLength(8)),
   group: V.pipe(V.string(), V.minLength(3)),
@@ -81,12 +77,12 @@ export const GoldSchema = V.object({
 
 export const ItemSchema = V.array(
   V.object({
-    id: V.string(),
+    id: V.pipe(V.string(), V.minLength(4)),
     colloq: V.optional(V.string()),
     description: V.optional(V.string()),
     gold: GoldSchema,
     image: ImageSchema,
-    into: V.optional(IntoSchema),
+    into: V.optional(V.array(V.pipe(V.string(), V.minLength(4)))),
     maps: V.optional(MapsSchema),
     name: V.pipe(V.string(), V.minLength(3)),
     plaintext: V.optional(V.string()),
