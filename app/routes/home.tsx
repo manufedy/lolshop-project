@@ -7,12 +7,12 @@ const idsToFilter = [3599, 3600, 3330, 3901, 3902, 3903, 1040, 2421];
 type ItemType = V.InferOutput<typeof ItemSchema>;
 
 type State = {
-  items: ItemType;
+  items: ItemType[];
 };
 
 type Action = {
   type: "GET_ITEMS";
-  payload: ItemType;
+  payload: ItemType[];
 };
 
 function itemsReducer(state: State, action: Action) {
@@ -56,7 +56,7 @@ export default function () {
       console.log("allLolItems:", allLolItems);
       //@ts-ignore
       const dataLolitems = V.parse(
-        ItemSchema,
+        V.array(ItemSchema),
         //@ts-ignore
         Object.entries(allLolItems.data)
           .map(([id, item]) => {
@@ -77,18 +77,28 @@ export default function () {
   }, []);
 
   return (
+    <body>
+      <header>Welcome Invoker!</header>
+      <h1>Starter Items:</h1>
+      ItemGrid
+    </body>
+  );
+}
+
+const Item = ({ items }: { items: ItemType[] }) => {
+  return (
     <div className="items-grid">
-      {state.items ? (
-        state.items.map((item) => {
+      {items ? (
+        items.map((items) => {
           return (
-            <div key={item.id} className="item-card">
+            <div key={items.id} className="item-card">
               <img
-                src={`https://ddragon.leagueoflegends.com/cdn/14.19.1/img/item/${item.image.full}`}
-                alt={item.name}
+                src={`https://ddragon.leagueoflegends.com/cdn/14.19.1/img/item/${items.image.full}`}
+                alt={items.name}
                 className="item-image"
               />
-              <h3 className="item-name">{item.name}</h3>
-              <p className="item-gold">{item.gold.total} Gold</p>
+              <h3 className="item-name">{items.name}</h3>
+              <p className="item-gold">{items.gold.total} Gold</p>
             </div>
           );
         })
@@ -97,4 +107,4 @@ export default function () {
       )}
     </div>
   );
-}
+};

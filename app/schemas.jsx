@@ -75,18 +75,16 @@ export const GoldSchema = V.object({
   total: V.number(),
 });
 
-export const ItemSchema = V.array(
-  V.object({
-    id: V.pipe(V.string(), V.minLength(4)),
-    colloq: V.optional(V.string()),
-    description: V.optional(V.string()),
-    gold: GoldSchema,
-    image: ImageSchema,
-    into: V.optional(V.array(V.pipe(V.string(), V.minLength(4)))),
-    maps: V.optional(MapsSchema),
-    name: V.pipe(V.string(), V.minLength(3)),
-    plaintext: V.optional(V.string()),
-    stat: V.optional(StatSchema),
-    tags: V.optional(tagsSchemas),
-  }),
-);
+export const ItemSchema = V.object({
+  id: V.pipe(V.string(), V.minLength(4)),
+  colloq: V.optional(V.string()),
+  description: V.optional(V.string()),
+  gold: GoldSchema,
+  image: ImageSchema,
+  into: V.optional(V.array(V.pipe(V.string(), V.minLength(4)))),
+  maps: V.optional(MapsSchema),
+  name: V.pipe(V.string(), V.minLength(3)),
+  plaintext: V.optional(V.string()),
+  stat: V.optional(StatSchema),
+  tags: V.optional(V.array(tagsSchemas)),
+});
