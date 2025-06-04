@@ -7,12 +7,11 @@ body {
 
 .items-grid {
   display: grid;
-  /* Adjust columns based on desired layout */
   grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-  gap: 20px; /* Space between items */
+  gap: 20px;
   padding: 20px;
-  max-width: 1200px; /* Limit the width of the grid */
-  margin: 0 auto; /* Center the grid */
+  max-width: 1200px;
+  margin: 0 auto;
 }
 
 .item-card {
@@ -25,7 +24,7 @@ body {
   transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
   display: flex;
   flex-direction: column;
-  justify-content: space-between; /* Pushes content apart, gold to bottom */
+  justify-content: space-between;
   align-items: center;
 }
 
@@ -35,32 +34,31 @@ body {
 }
 
 .item-image {
-  width: 64px; /* Standard League of Legends item icon size */
+  width: 64px;
   height: 64px;
-  object-fit: contain; /* Ensures the image fits within the bounds */
+  object-fit: contain;
   margin-bottom: 10px;
 }
 
 .item-name {
   font-size: 1em;
   font-weight: bold;
-  margin: 0 0 5px 0; /* Adjust margin as needed */
+  margin: 0 0 5px 0;
   color: #555;
-  word-wrap: break-word; /* Allows long names to wrap */
+  word-wrap: break-word;
   text-align: center;
 }
 
 .item-gold {
   font-size: 0.9em;
   color: #888;
-  margin-top: auto; /* Pushes gold to the bottom of the card */
+  margin-top: auto;
   font-weight: 600;
 }
 
-/* Style for the loading message */
 .items-grid > p {
   text-align: center;
-  grid-column: 1 / -1; /* Make the loading message span all columns */
+  grid-column: 1 / -1;
   font-size: 1.2em;
   color: #666;
 }

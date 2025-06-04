@@ -1,5 +1,7 @@
 import * as V from "valibot";
 
+export const idSchema = V.pipe(V.string(), V.minLength(4));
+
 export const tagsSchemas = V.union([
   V.literal("Boots"),
   V.literal("ManaRegen"),
@@ -76,12 +78,14 @@ export const GoldSchema = V.object({
 });
 
 export const ItemSchema = V.object({
-  id: V.pipe(V.string(), V.minLength(4)),
+  id: idSchema,
   colloq: V.optional(V.string()),
+  depth: V.optional(V.number()),
   description: V.optional(V.string()),
+  from: V.optional(V.array(idSchema)),
   gold: GoldSchema,
   image: ImageSchema,
-  into: V.optional(V.array(V.pipe(V.string(), V.minLength(4)))),
+  into: V.optional(V.array(V.pipe(idSchema))),
   maps: V.optional(MapsSchema),
   name: V.pipe(V.string(), V.minLength(3)),
   plaintext: V.optional(V.string()),

@@ -29,6 +29,21 @@ const initialState = {
   items: [],
 };
 
+const getStarterItems = (state: ItemType[]): ItemType[] => {
+  const maxGold = 500;
+  const excludedTags = ["Consumable", "Trinket", "Vision", "Boots", "Jungle"];
+
+  return state
+    .filter((item) => item.gold.total <= maxGold)
+    .filter(
+      (item) =>
+        !item.tags || !item.tags.some((tag) => excludedTags.includes(tag)),
+    )
+    .filter((item) => item.gold.total !== 0)
+    .filter((item) => !item.from || item.from.length === 0)
+    .filter((item) => );
+};
+
 export default function () {
   const [state, dispatch] = useReducer(itemsReducer, initialState);
 
@@ -39,6 +54,7 @@ export default function () {
       ).then((response) => {
         return response.json();
       });
+
       // const allPosibleStats = new Set();
       // Object.entries(allLolItems.data).map(([id, item]) => {
       //   Object.keys(item.stats).map((key) => {
@@ -53,7 +69,7 @@ export default function () {
       //   });
       // });
       // console.log("allPosibleTags:", allPosibleTags);
-      console.log("allLolItems:", allLolItems);
+
       //@ts-ignore
       const dataLolitems = V.parse(
         V.array(ItemSchema),
@@ -71,40 +87,42 @@ export default function () {
             }
           }),
       );
+
       dispatch({ type: "GET_ITEMS", payload: dataLolitems });
     }
+
     run();
   }, []);
 
+  const starterItems = getStarterItems(state.items);
+  console.log("starterItems:", starterItems);
   return (
-    <body>
+    <div>
       <header>Welcome Invoker!</header>
       <h1>Starter Items:</h1>
-      ItemGrid
-    </body>
+      <div className="items-grid">
+        {starterItems.length > 0 ? (
+          starterItems.map((item: ItemType) => {
+            return <Item item={item} key={item.id} />;
+          })
+        ) : (
+          <p>Loading items...</p>
+        )}
+      </div>
+    </div>
   );
 }
 
-const Item = ({ items }: { items: ItemType[] }) => {
+const Item = ({ item }: { item: ItemType }) => {
   return (
-    <div className="items-grid">
-      {items ? (
-        items.map((items) => {
-          return (
-            <div key={items.id} className="item-card">
-              <img
-                src={`https://ddragon.leagueoflegends.com/cdn/14.19.1/img/item/${items.image.full}`}
-                alt={items.name}
-                className="item-image"
-              />
-              <h3 className="item-name">{items.name}</h3>
-              <p className="item-gold">{items.gold.total} Gold</p>
-            </div>
-          );
-        })
-      ) : (
-        <p>Loading items...</p>
-      )}
+    <div className="item-card">
+      <img
+        src={`https://ddragon.leagueoflegends.com/cdn/14.19.1/img/item/${item.image.full}`}
+        alt={item.name}
+        className="item-image"
+      />
+      <h3 className="item-name">{item.name}</h3>
+      <p className="item-gold">{item.gold.total} Gold</p>
     </div>
   );
 };
