@@ -31,9 +31,10 @@ const initialState = {
 
 const getStarterItems = (state: ItemType[]): ItemType[] => {
   const maxGold = 500;
-  const excludedTags = ["Consumable", "Trinket", "Vision", "Boots", "Jungle"];
+  const excludedTags = ["Consumable", "Trinket", "Boots"];
+  const existingItems = new Map<string, ItemType>();
 
-  return state
+  const nextItems = state
     .filter((item) => item.gold.total <= maxGold)
     .filter(
       (item) =>
@@ -41,7 +42,42 @@ const getStarterItems = (state: ItemType[]): ItemType[] => {
     )
     .filter((item) => item.gold.total !== 0)
     .filter((item) => !item.from || item.from.length === 0)
-    .filter((item) => );
+    .filter((item) => item.gold.purchasable === true)
+    .filter(
+      (item) =>
+        item.into?.includes("3041") ||
+        item.into?.includes("3003") ||
+        item.into?.includes("3004") ||
+        item.into?.includes("3119") ||
+        item.into === undefined,
+    );
+
+  for (const item of nextItems) {
+    existingItems.set(item.name, item);
+  }
+
+  return Array.from(existingItems.values());
+};
+
+const getBootsItems = (state: ItemType[]) => {
+  return state.filter((item) => item.tags?.includes("Boots"));
+};
+const getConsumableItems = (state: ItemType[]) => {
+  return state.filter(
+    (item) =>
+      item.tags?.includes("Consumable") ||
+      (item.gold.total === 0 && item.tags?.includes("Vision")),
+  );
+};
+const getBasicItems = (state: ItemType[]) => {
+  return state.filter(
+    (item) =>
+      item.gold.total <= 1300 &&
+      item.gold.total >= 200 &&
+      !item.tags?.includes("Vision") &&
+      !item.tags?.includes("Boots") &&
+      !item.tags?.includes("Trinket"),
+  );
 };
 
 export default function () {
@@ -85,7 +121,9 @@ export default function () {
             if (items !== undefined) {
               return items;
             }
-          }),
+          })
+          .filter((item) => item.maps?.[11] === true)
+          .filter((item) => item.gold.purchasable === true),
       );
 
       dispatch({ type: "GET_ITEMS", payload: dataLolitems });
@@ -93,16 +131,51 @@ export default function () {
 
     run();
   }, []);
-
+  const bootsItems = getBootsItems(state.items);
+  const consumableItems = getConsumableItems(state.items);
   const starterItems = getStarterItems(state.items);
-  console.log("starterItems:", starterItems);
+  const basicItems = getBasicItems(state.items);
+  console.log("basicItems:", basicItems);
   return (
     <div>
       <header>Welcome Invoker!</header>
+      <h1>Boots:</h1>
+      <div className="items-grid">
+        {bootsItems.length > 0 ? (
+          bootsItems.map((item: ItemType) => {
+            return <Item item={item} key={item.id} />;
+          })
+        ) : (
+          <p>Loading items...</p>
+        )}
+      </div>
+
+      <h1>Consumables:</h1>
+      <div className="items-grid">
+        {consumableItems.length > 0 ? (
+          consumableItems.map((item: ItemType) => {
+            return <Item item={item} key={item.id} />;
+          })
+        ) : (
+          <p>Loading items...</p>
+        )}
+      </div>
+
       <h1>Starter Items:</h1>
       <div className="items-grid">
         {starterItems.length > 0 ? (
           starterItems.map((item: ItemType) => {
+            return <Item item={item} key={item.id} />;
+          })
+        ) : (
+          <p>Loading items...</p>
+        )}
+      </div>
+
+      <h1>Basic Items:</h1>
+      <div className="items-grid">
+        {basicItems.length > 0 ? (
+          basicItems.map((item: ItemType) => {
             return <Item item={item} key={item.id} />;
           })
         ) : (
