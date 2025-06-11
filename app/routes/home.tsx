@@ -70,14 +70,25 @@ const getConsumableItems = (state: ItemType[]) => {
   );
 };
 const getBasicItems = (state: ItemType[]) => {
-  return state.filter(
-    (item) =>
-      item.gold.total <= 1300 &&
-      item.gold.total >= 200 &&
-      !item.tags?.includes("Vision") &&
-      !item.tags?.includes("Boots") &&
-      !item.tags?.includes("Trinket"),
-  );
+  return state
+    .filter((item) => item.gold.total <= 1300 && item.gold.total >= 200)
+    .filter(
+      (item) =>
+        !item.tags?.includes("Consumable") &&
+        !item.tags?.includes("Boots") &&
+        !item.tags?.includes("Jungle") &&
+        !item.tags?.includes("Vision"),
+    )
+    .filter((item) => item.from?.length === 0 || !item.from)
+    .filter((item) => item.into && item.into?.length >= 2);
+};
+
+const getEpicItems = (state: ItemType[]) => {
+  return state
+    .filter((item) => item.gold.total >= 600 && item.gold.total <= 1600)
+    .filter((item) => !item.tags?.includes("Vision"))
+    .filter((item) => item.from && item.from.length >= 1)
+    .filter((item) => !item.tags?.includes("Boots"));
 };
 
 export default function () {
@@ -109,6 +120,7 @@ export default function () {
       //@ts-ignore
       const dataLolitems = V.parse(
         V.array(ItemSchema),
+        //* find a way to fix this without the comment
         //@ts-ignore
         Object.entries(allLolItems.data)
           .map(([id, item]) => {
@@ -131,11 +143,13 @@ export default function () {
 
     run();
   }, []);
+  //* remember to export the logic of this functions to a reducer
   const bootsItems = getBootsItems(state.items);
   const consumableItems = getConsumableItems(state.items);
   const starterItems = getStarterItems(state.items);
   const basicItems = getBasicItems(state.items);
-  console.log("basicItems:", basicItems);
+  const epicItems = getEpicItems(state.items);
+  console.log("epicItems:", epicItems);
   return (
     <div>
       <header>Welcome Invoker!</header>
@@ -176,6 +190,17 @@ export default function () {
       <div className="items-grid">
         {basicItems.length > 0 ? (
           basicItems.map((item: ItemType) => {
+            return <Item item={item} key={item.id} />;
+          })
+        ) : (
+          <p>Loading items...</p>
+        )}
+      </div>
+
+      <h1>Epic Items:</h1>
+      <div className="items-grid">
+        {epicItems.length > 0 ? (
+          epicItems.map((item: ItemType) => {
             return <Item item={item} key={item.id} />;
           })
         ) : (
