@@ -90,6 +90,21 @@ const getEpicItems = (state: ItemType[]) => {
     .filter((item) => item.from && item.from.length >= 1)
     .filter((item) => !item.tags?.includes("Boots"));
 };
+const getLegendaryItems = (state: ItemType[]) => {
+  return state
+    .filter((item) => !item.into || item.into.length === 0)
+    .filter(
+      (item) =>
+        (item.from && item.from.length >= 1) ||
+        (item.tags?.includes("Vision") &&
+          item.stats?.FlatHPPoolMod !== undefined),
+    )
+    .filter((item) => item.gold.total >= 400)
+    .filter(
+      (item) =>
+        !item.tags?.includes("Boots") && !item.tags?.includes("Consumable"),
+    );
+};
 
 export default function () {
   const [state, dispatch] = useReducer(itemsReducer, initialState);
@@ -149,7 +164,8 @@ export default function () {
   const starterItems = getStarterItems(state.items);
   const basicItems = getBasicItems(state.items);
   const epicItems = getEpicItems(state.items);
-  console.log("epicItems:", epicItems);
+  const legendaryItems = getLegendaryItems(state.items);
+  console.log("basicItems:", basicItems);
   return (
     <div>
       <header>Welcome Invoker!</header>
@@ -201,6 +217,17 @@ export default function () {
       <div className="items-grid">
         {epicItems.length > 0 ? (
           epicItems.map((item: ItemType) => {
+            return <Item item={item} key={item.id} />;
+          })
+        ) : (
+          <p>Loading items...</p>
+        )}
+      </div>
+
+      <h1>Legendary Items:</h1>
+      <div className="items-grid">
+        {legendaryItems.length > 0 ? (
+          legendaryItems.map((item: ItemType) => {
             return <Item item={item} key={item.id} />;
           })
         ) : (
