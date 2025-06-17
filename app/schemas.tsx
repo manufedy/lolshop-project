@@ -92,3 +92,5 @@ export const ItemSchema = V.object({
   stat: V.optional(StatSchema),
   tags: V.optional(V.array(tagsSchemas)),
 });
+
+export type ItemType = V.InferOutput<typeof ItemSchema>;

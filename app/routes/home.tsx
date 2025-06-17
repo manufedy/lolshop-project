@@ -1,33 +1,10 @@
+import type React from "react";
 import { useReducer, useEffect } from "react";
 import * as V from "valibot";
-import { ItemSchema } from "~/schemas";
+import { ItemSchema, type ItemType } from "~/schemas";
+import { itemsReducer, initialState, type Action } from "../itemReducer";
 
 const idsToFilter = [3599, 3600, 3330, 3901, 3902, 3903, 1040, 2421];
-
-type ItemType = V.InferOutput<typeof ItemSchema>;
-
-type State = {
-  items: ItemType[];
-};
-
-type Action = {
-  type: "GET_ITEMS";
-  payload: ItemType[];
-};
-
-function itemsReducer(state: State, action: Action) {
-  switch (action.type) {
-    case "GET_ITEMS": {
-      return { items: action.payload };
-    }
-    default:
-      return state;
-  }
-}
-
-const initialState = {
-  items: [],
-};
 
 const getStarterItems = (state: ItemType[]): ItemType[] => {
   const maxGold = 500;
@@ -59,18 +36,18 @@ const getStarterItems = (state: ItemType[]): ItemType[] => {
   return Array.from(existingItems.values());
 };
 
-const getBootsItems = (state: ItemType[]) => {
-  return state.filter((item) => item.tags?.includes("Boots"));
-};
-const getConsumableItems = (state: ItemType[]) => {
-  return state.filter(
+const getBootsItems = (state: ItemType[]) =>
+  state.filter((item) => item.tags?.includes("Boots"));
+
+const getConsumableItems = (state: ItemType[]) =>
+  state.filter(
     (item) =>
       item.tags?.includes("Consumable") ||
       (item.gold.total === 0 && item.tags?.includes("Vision")),
   );
-};
-const getBasicItems = (state: ItemType[]) => {
-  return state
+
+const getBasicItems = (state: ItemType[]) =>
+  state
     .filter((item) => item.gold.total <= 1300 && item.gold.total >= 200)
     .filter(
       (item) =>
@@ -81,17 +58,16 @@ const getBasicItems = (state: ItemType[]) => {
     )
     .filter((item) => item.from?.length === 0 || !item.from)
     .filter((item) => item.into && item.into?.length >= 2);
-};
 
-const getEpicItems = (state: ItemType[]) => {
-  return state
+const getEpicItems = (state: ItemType[]) =>
+  state
     .filter((item) => item.gold.total >= 600 && item.gold.total <= 1600)
     .filter((item) => !item.tags?.includes("Vision"))
     .filter((item) => item.from && item.from.length >= 1)
     .filter((item) => !item.tags?.includes("Boots"));
-};
-const getLegendaryItems = (state: ItemType[]) => {
-  return state
+
+const getLegendaryItems = (state: ItemType[]) =>
+  state
     .filter((item) => !item.into || item.into.length === 0)
     .filter(
       (item) =>
@@ -104,38 +80,18 @@ const getLegendaryItems = (state: ItemType[]) => {
       (item) =>
         !item.tags?.includes("Boots") && !item.tags?.includes("Consumable"),
     );
-};
 
-export default function () {
+export default function HomePage() {
   const [state, dispatch] = useReducer(itemsReducer, initialState);
 
   useEffect(() => {
     async function run() {
       const allLolItems = await fetch(
         "https://ddragon.leagueoflegends.com/cdn/14.19.1/data/en_US/item.json",
-      ).then((response) => {
-        return response.json();
-      });
+      ).then((response) => response.json());
 
-      // const allPosibleStats = new Set();
-      // Object.entries(allLolItems.data).map(([id, item]) => {
-      //   Object.keys(item.stats).map((key) => {
-      //     allPosibleStats.add(key);
-      //   });
-      // });
-      // console.log("allPosibleStats:", allPosibleStats);
-      // const allPosibleTags = new Set();
-      // Object.entries(allLolItems.data).map(([id, item]) => {
-      //   Object.values(item.tags).map((values) => {
-      //     allPosibleTags.add(values);
-      //   });
-      // });
-      // console.log("allPosibleTags:", allPosibleTags);
-
-      //@ts-ignore
       const dataLolitems = V.parse(
         V.array(ItemSchema),
-        //* find a way to fix this without the comment
         //@ts-ignore
         Object.entries(allLolItems.data)
           .map(([id, item]) => {
@@ -144,11 +100,7 @@ export default function () {
               return { id: id, ...item };
             }
           })
-          .filter((items) => {
-            if (items !== undefined) {
-              return items;
-            }
-          })
+          .filter((item) => item !== undefined)
           .filter((item) => item.maps?.[11] === true)
           .filter((item) => item.gold.purchasable === true),
       );
@@ -158,96 +110,153 @@ export default function () {
 
     run();
   }, []);
-  //* remember to export the logic of this functions to a reducer
+
   const bootsItems = getBootsItems(state.items);
   const consumableItems = getConsumableItems(state.items);
   const starterItems = getStarterItems(state.items);
   const basicItems = getBasicItems(state.items);
   const epicItems = getEpicItems(state.items);
   const legendaryItems = getLegendaryItems(state.items);
-  console.log("basicItems:", basicItems);
+
   return (
-    <div>
-      <header>Welcome Invoker!</header>
-      <h1>Boots:</h1>
-      <div className="items-grid">
-        {bootsItems.length > 0 ? (
-          bootsItems.map((item: ItemType) => {
-            return <Item item={item} key={item.id} />;
-          })
-        ) : (
-          <p>Loading items...</p>
-        )}
-      </div>
+    <div className="app-container">
+      {state.selectedItem && (
+        <SelectedItem item={state.selectedItem} allItems={state.items} />
+      )}
+      <div className="items-section">
+        <header>Welcome Invoker!</header>
 
-      <h1>Consumables:</h1>
-      <div className="items-grid">
-        {consumableItems.length > 0 ? (
-          consumableItems.map((item: ItemType) => {
-            return <Item item={item} key={item.id} />;
-          })
-        ) : (
-          <p>Loading items...</p>
-        )}
-      </div>
+        <h1>Boots:</h1>
+        <div className="items-grid">
+          {bootsItems.map((item) => (
+            <Item key={item.id} item={item} dispatch={dispatch} />
+          ))}
+        </div>
 
-      <h1>Starter Items:</h1>
-      <div className="items-grid">
-        {starterItems.length > 0 ? (
-          starterItems.map((item: ItemType) => {
-            return <Item item={item} key={item.id} />;
-          })
-        ) : (
-          <p>Loading items...</p>
-        )}
-      </div>
+        <h1>Consumables:</h1>
+        <div className="items-grid">
+          {consumableItems.map((item) => (
+            <Item key={item.id} item={item} dispatch={dispatch} />
+          ))}
+        </div>
 
-      <h1>Basic Items:</h1>
-      <div className="items-grid">
-        {basicItems.length > 0 ? (
-          basicItems.map((item: ItemType) => {
-            return <Item item={item} key={item.id} />;
-          })
-        ) : (
-          <p>Loading items...</p>
-        )}
-      </div>
+        <h1>Starter Items:</h1>
+        <div className="items-grid">
+          {starterItems.map((item) => (
+            <Item key={item.id} item={item} dispatch={dispatch} />
+          ))}
+        </div>
 
-      <h1>Epic Items:</h1>
-      <div className="items-grid">
-        {epicItems.length > 0 ? (
-          epicItems.map((item: ItemType) => {
-            return <Item item={item} key={item.id} />;
-          })
-        ) : (
-          <p>Loading items...</p>
-        )}
-      </div>
+        <h1>Basic Items:</h1>
+        <div className="items-grid">
+          {basicItems.map((item) => (
+            <Item key={item.id} item={item} dispatch={dispatch} />
+          ))}
+        </div>
 
-      <h1>Legendary Items:</h1>
-      <div className="items-grid">
-        {legendaryItems.length > 0 ? (
-          legendaryItems.map((item: ItemType) => {
-            return <Item item={item} key={item.id} />;
-          })
-        ) : (
-          <p>Loading items...</p>
-        )}
+        <h1>Epic Items:</h1>
+        <div className="items-grid">
+          {epicItems.map((item) => (
+            <Item key={item.id} item={item} dispatch={dispatch} />
+          ))}
+        </div>
+
+        <h1>Legendary Items:</h1>
+        <div className="items-grid">
+          {legendaryItems.map((item) => (
+            <Item key={item.id} item={item} dispatch={dispatch} />
+          ))}
+        </div>
       </div>
     </div>
   );
 }
 
-const Item = ({ item }: { item: ItemType }) => {
+const Item = ({
+  item,
+  dispatch,
+}: {
+  item: ItemType;
+  dispatch: React.Dispatch<Action>;
+}) => (
+  <button
+    className="item-card"
+    type="button"
+    onClick={() => dispatch({ type: "SET_ITEMS", payload: item })}
+  >
+    <img
+      src={`https://ddragon.leagueoflegends.com/cdn/14.19.1/img/item/${item.image.full}`}
+      alt={item.name}
+      className="item-image"
+    />
+    <h3 className="item-name">{item.name}</h3>
+    <p className="item-gold">{item.gold.total} Gold</p>
+  </button>
+);
+
+const SelectedItem = ({
+  item,
+  allItems,
+}: {
+  item: ItemType;
+  allItems: ItemType[];
+}) => {
+  const getItemsByIds = (ids?: string[]) => {
+    if (!ids) return [];
+    return allItems.filter((item) => ids.includes(item.id));
+  };
+
+  const fromItems = getItemsByIds(item.from);
+  const intoItems = getItemsByIds(item.into);
+
   return (
-    <div className="item-card">
-      <img
-        src={`https://ddragon.leagueoflegends.com/cdn/14.19.1/img/item/${item.image.full}`}
-        alt={item.name}
-        className="item-image"
-      />
-      <h3 className="item-name">{item.name}</h3>
-      <p className="item-gold">{item.gold.total} Gold</p>
+    <div className="selected-item-details">
+      <h2>Selected Item</h2>
+      <div className="item-card">
+        <img
+          src={`https://ddragon.leagueoflegends.com/cdn/14.19.1/img/item/${item.image.full}`}
+          alt={item.name}
+          className="item-image"
+        />
+        <h3 className="item-name">{item.name}</h3>
+        <p className="item-gold">{item.gold.total} Gold</p>
+      </div>
+
+      {fromItems.length > 0 && (
+        <>
+          <h4>Builds From:</h4>
+          <div className="related-items">
+            {fromItems.map((fItem) => (
+              <div className="related-item" key={fItem.id}>
+                <img
+                  src={`https://ddragon.leagueoflegends.com/cdn/14.19.1/img/item/${fItem.image.full}`}
+                  alt={fItem.name}
+                  className="item-image"
+                />
+                <span>{fItem.name}</span>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
+
+      {intoItems.length > 0 && (
+        <>
+          <h4>Into:</h4>
+          <div className="related-items">
+            {intoItems.map((iItem) => (
+              <div className="related-item" key={iItem.id}>
+                <img
+                  src={`https://ddragon.leagueoflegends.com/cdn/14.19.1/img/item/${iItem.image.full}`}
+                  alt={iItem.name}
+                  className="item-image"
+                />
+                <span>{iItem.name}</span>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
     </div>
   );
 };
