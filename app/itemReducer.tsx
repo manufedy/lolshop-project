@@ -3,15 +3,20 @@ import { ItemSchema, type ItemType } from "~/schemas";
 export type State = {
   items: ItemType[];
   selectedItem: ItemType | null;
+  inventory: ItemType[];
+  gold: number;
 };
 
 export type Action =
   | { type: "GET_ITEMS"; payload: ItemType[] }
-  | { type: "SET_ITEMS"; payload: ItemType };
+  | { type: "SET_ITEMS"; payload: ItemType }
+  | { type: "BUY_ITEMS"; payload: ItemType };
 
 export const initialState: State = {
   items: [],
   selectedItem: null,
+  inventory: [],
+  gold: 20000,
 };
 
 export function itemsReducer(state: State, action: Action): State {
@@ -21,6 +26,37 @@ export function itemsReducer(state: State, action: Action): State {
     }
     case "SET_ITEMS": {
       return { ...state, selectedItem: action.payload };
+    }
+    case "BUY_ITEMS": {
+      const item = action.payload;
+      const cost = item.gold.total;
+      let discount = 0;
+
+      const ownedComponentIds =
+        item.from?.filter((id) =>
+          state.inventory.some((ownedItem) => ownedItem.id === id),
+        ) ?? [];
+
+      const ownedItems = state.items.filter((i) =>
+        ownedComponentIds.includes(i.id),
+      );
+      discount = ownedItems.reduce((sum, i) => sum + i.gold.total, 0);
+
+      const effectiveCost = Math.max(cost - discount, 0);
+
+      if (state.gold >= effectiveCost) {
+        const newInventory = state.inventory.filter(
+          (invItem) => !ownedComponentIds.includes(invItem.id),
+        );
+
+        return {
+          ...state,
+          gold: state.gold - effectiveCost,
+          inventory: [...newInventory, item],
+        };
+      }
+
+      return state;
     }
     default:
       return state;

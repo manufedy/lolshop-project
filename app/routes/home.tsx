@@ -73,6 +73,7 @@ const getLegendaryItems = (state: ItemType[]) =>
       (item) =>
         (item.from && item.from.length >= 1) ||
         (item.tags?.includes("Vision") &&
+          //@ts-ignore
           item.stats?.FlatHPPoolMod !== undefined),
     )
     .filter((item) => item.gold.total >= 400)
@@ -120,8 +121,29 @@ export default function HomePage() {
 
   return (
     <div className="app-container">
+      <div className="sidebar">
+        <h2>Gold: {state.gold}</h2>
+        <h3>Inventory:</h3>
+        <div className="inventory-grid">
+          {state.inventory.map((item) => (
+            <div key={item.id} className="inventory-item">
+              <img
+                src={`https://ddragon.leagueoflegends.com/cdn/14.19.1/img/item/${item.image.full}`}
+                alt={item.name}
+                className="item-image"
+              />
+              <span>{item.name}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
       {state.selectedItem && (
-        <SelectedItem item={state.selectedItem} allItems={state.items} />
+        <SelectedItem
+          item={state.selectedItem}
+          allItems={state.items}
+          dispatch={dispatch}
+        />
       )}
       <div className="items-section">
         <header>Welcome Invoker!</header>
@@ -197,9 +219,11 @@ const Item = ({
 const SelectedItem = ({
   item,
   allItems,
+  dispatch,
 }: {
   item: ItemType;
   allItems: ItemType[];
+  dispatch: React.Dispatch<Action>;
 }) => {
   const getItemsByIds = (ids?: string[]) => {
     if (!ids) return [];
@@ -221,6 +245,30 @@ const SelectedItem = ({
         <h3 className="item-name">{item.name}</h3>
         <p className="item-gold">{item.gold.total} Gold</p>
       </div>
+      <button
+        type="button"
+        className="buy-button"
+        onClick={() => dispatch({ type: "BUY_ITEMS", payload: item })}
+      >
+        Buy
+      </button>
+      {intoItems.length > 0 && (
+        <>
+          <h4>Into:</h4>
+          <div className="related-items">
+            {intoItems.map((iItem) => (
+              <div className="related-item" key={iItem.id}>
+                <img
+                  src={`https://ddragon.leagueoflegends.com/cdn/14.19.1/img/item/${iItem.image.full}`}
+                  alt={iItem.name}
+                  className="item-image"
+                />
+                <span>{iItem.name}</span>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
 
       {fromItems.length > 0 && (
         <>
@@ -234,24 +282,6 @@ const SelectedItem = ({
                   className="item-image"
                 />
                 <span>{fItem.name}</span>
-              </div>
-            ))}
-          </div>
-        </>
-      )}
-
-      {intoItems.length > 0 && (
-        <>
-          <h4>Into:</h4>
-          <div className="related-items">
-            {intoItems.map((iItem) => (
-              <div className="related-item" key={iItem.id}>
-                <img
-                  src={`https://ddragon.leagueoflegends.com/cdn/14.19.1/img/item/${iItem.image.full}`}
-                  alt={iItem.name}
-                  className="item-image"
-                />
-                <span>{iItem.name}</span>
               </div>
             ))}
           </div>
