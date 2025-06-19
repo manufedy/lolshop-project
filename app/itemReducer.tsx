@@ -5,12 +5,14 @@ export type State = {
   selectedItem: ItemType | null;
   inventory: ItemType[];
   gold: number;
+  history: [];
 };
 
 export type Action =
   | { type: "GET_ITEMS"; payload: ItemType[] }
   | { type: "SET_ITEMS"; payload: ItemType }
-  | { type: "BUY_ITEMS"; payload: ItemType };
+  | { type: "BUY_ITEMS"; payload: ItemType }
+  | { type: "SELL_ITEMS"; payload: ItemType };
 
 export const initialState: State = {
   items: [],
@@ -57,6 +59,22 @@ export function itemsReducer(state: State, action: Action): State {
       }
 
       return state;
+    }
+    case "SELL_ITEMS": {
+      const itemToDelete = state.inventory.find(
+        (item) => item.id === action.payload.id,
+      );
+      if (!itemToDelete) {
+        return state;
+      }
+      const nextInventory = state.inventory.filter(
+        (item) => item.id !== itemToDelete?.id,
+      );
+      return {
+        ...state,
+        gold: state.gold + itemToDelete?.gold.total,
+        inventory: nextInventory,
+      };
     }
     default:
       return state;

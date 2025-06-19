@@ -1,4 +1,7 @@
 import * as V from "valibot";
+export const transaction = V.object({
+  type: V.union([V.literal("buy"),V.literal("sell"))
+})
 
 export const idSchema = V.pipe(V.string(), V.minLength(4));
 

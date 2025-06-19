@@ -252,6 +252,13 @@ const SelectedItem = ({
       >
         Buy
       </button>
+      <button
+        type="button"
+        className="buy-button"
+        onClick={() => dispatch({ type: "SELL_ITEMS", payload: item })}
+      >
+        Sell
+      </button>
       {intoItems.length > 0 && (
         <>
           <h4>Into:</h4>
