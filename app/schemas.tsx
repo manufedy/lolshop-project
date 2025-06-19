@@ -1,7 +1,4 @@
 import * as V from "valibot";
-export const transaction = V.object({
-  type: V.union([V.literal("buy"),V.literal("sell"))
-})
 
 export const idSchema = V.pipe(V.string(), V.minLength(4));
 
@@ -95,5 +92,12 @@ export const ItemSchema = V.object({
   stat: V.optional(StatSchema),
   tags: V.optional(V.array(tagsSchemas)),
 });
+
+export const transactionSchema = V.object({
+  type: V.union([V.literal("buy"), V.literal("sell")]),
+  item: ItemSchema,
+});
+
+export type Transaction = V.InferOutput<typeof transactionSchema>;
 
 export type ItemType = V.InferOutput<typeof ItemSchema>;

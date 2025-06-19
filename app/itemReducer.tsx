@@ -1,25 +1,29 @@
-import { ItemSchema, type ItemType } from "~/schemas";
+import { ItemSchema, type ItemType, type Transaction } from "~/schemas";
 
 export type State = {
   items: ItemType[];
   selectedItem: ItemType | null;
   inventory: ItemType[];
   gold: number;
-  history: [];
+  history: Transaction[];
 };
 
 export type Action =
   | { type: "GET_ITEMS"; payload: ItemType[] }
   | { type: "SET_ITEMS"; payload: ItemType }
   | { type: "BUY_ITEMS"; payload: ItemType }
-  | { type: "SELL_ITEMS"; payload: ItemType };
+  | { type: "SELL_ITEMS"; payload: ItemType }
+  | { type: "UNDO_ITEMS" };
 
 export const initialState: State = {
   items: [],
   selectedItem: null,
   inventory: [],
   gold: 20000,
+  history: [],
 };
+
+const goldCap = (value: number) => Math.max(0, Math.min(20000, value));
 
 export function itemsReducer(state: State, action: Action): State {
   switch (action.type) {
@@ -53,14 +57,17 @@ export function itemsReducer(state: State, action: Action): State {
 
         return {
           ...state,
-          gold: state.gold - effectiveCost,
+          gold: goldCap(state.gold - effectiveCost),
           inventory: [...newInventory, item],
+          history: [...state.history, { type: "buy", item: item }],
         };
       }
 
       return state;
     }
     case "SELL_ITEMS": {
+      const item = action.payload;
+
       const itemToDelete = state.inventory.find(
         (item) => item.id === action.payload.id,
       );
@@ -72,9 +79,42 @@ export function itemsReducer(state: State, action: Action): State {
       );
       return {
         ...state,
-        gold: state.gold + itemToDelete?.gold.total,
+        gold: goldCap(state.gold + itemToDelete?.gold.total),
         inventory: nextInventory,
+        history: [...state.history, { type: "sell", item: item }],
       };
+    }
+    case "UNDO_ITEMS": {
+      if (state.history.length === 0) {
+        return state;
+      }
+      const lastHistoryItem = state.history.length - 1;
+
+      if (state.history[lastHistoryItem].type === "buy") {
+        const itemToDelete = state.inventory.find(
+          (item) => item.id === state.history[lastHistoryItem].item.id,
+        );
+        const nextInventory = state.inventory.filter(
+          (item) => item.id !== itemToDelete?.id,
+        );
+        return {
+          ...state,
+          inventory: nextInventory,
+          gold: goldCap(
+            state.gold + state.history[lastHistoryItem].item.gold.total,
+          ),
+          history: state.history.slice(0, -1),
+        };
+      }
+      if (state.history[lastHistoryItem].type === "sell") {
+        return {
+          ...state,
+          inventory: [...state.inventory, state.history[lastHistoryItem].item],
+          gold: state.gold - state.history[lastHistoryItem].item.gold.total,
+          history: state.history.slice(0, -1),
+        };
+      }
+      return state;
     }
     default:
       return state;

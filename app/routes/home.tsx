@@ -259,6 +259,13 @@ const SelectedItem = ({
       >
         Sell
       </button>
+      <button
+        type="button"
+        className="buy-button"
+        onClick={() => dispatch({ type: "UNDO_ITEMS" })}
+      >
+        Undo
+      </button>
       {intoItems.length > 0 && (
         <>
           <h4>Into:</h4>
